@@ -1,0 +1,8 @@
+.build/
+.swiftpm/
+.DS_Store
+work/
+outputs/*
+!outputs/product-plan.md
+*.xcuserstate
+.env*
