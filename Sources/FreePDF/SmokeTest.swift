@@ -8,6 +8,9 @@ func smokeTestApplication() throws {
     NSDocumentController.shared.addDocument(document)
     document.makeWindowControllers()
     guard let editor = document.editor, let window = editor.window else { throw NSError(domain: "FreePDFSmoke", code: 2, userInfo: [NSLocalizedDescriptionKey: "window controller creation"]) }
+    guard document.windowControllers.count == 1, editor.document as? FreePDFDocument === document else {
+        throw NSError(domain: "FreePDFSmoke", code: 12, userInfo: [NSLocalizedDescriptionKey: "document-window association"])
+    }
     window.contentView?.layoutSubtreeIfNeeded()
     guard editor.pdfView.document?.pageCount == 1, window.contentView!.bounds.width >= 850 else { throw NSError(domain: "FreePDFSmoke", code: 3, userInfo: [NSLocalizedDescriptionKey: "initial window layout"]) }
     document.undoManager?.beginUndoGrouping()

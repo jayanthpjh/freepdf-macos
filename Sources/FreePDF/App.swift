@@ -5,14 +5,29 @@ import FreePDFCore
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     var recoveryTimer: Timer?
+    var finishedLaunching = false
     func applicationDidFinishLaunching(_ notification: Notification) {
+        finishedLaunching = true
         buildMenus()
         NSApp.activate(ignoringOtherApps: true)
-        AppRecovery.restore()
+        if !CommandLine.arguments.contains("--startup-test") { AppRecovery.restore() }
         recoveryTimer = Timer.scheduledTimer(withTimeInterval: 30, repeats: true) { _ in
             MainActor.assumeIsolated { AppRecovery.checkpoint() }
         }
-        if NSDocumentController.shared.documents.isEmpty { NSDocumentController.shared.newDocument(nil) }
+        presentDocumentWindows()
+    }
+    func presentDocumentWindows() {
+        let controller = NSDocumentController.shared
+        if controller.documents.isEmpty { controller.newDocument(nil) }
+        for document in controller.documents {
+            if document.windowControllers.isEmpty { document.makeWindowControllers() }
+            document.showWindows()
+        }
+        NSApp.activate(ignoringOtherApps: true)
+    }
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        if !flag { presentDocumentWindows() }
+        return true
     }
     func applicationShouldOpenUntitledFile(_ sender: NSApplication) -> Bool { false }
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { false }
@@ -78,6 +93,16 @@ struct FreePDFApp {
             do { try smokeTestApplication() }
             catch { fputs("Native smoke test failed: \(error)\n", stderr); exit(1) }
             return
+        }
+        if CommandLine.arguments.contains("--startup-test") {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                let documents = NSDocumentController.shared.documents
+                let visible = documents.flatMap(\.windowControllers).compactMap(\.window).filter(\.isVisible)
+                let counts = documents.map { "class=\(String(describing: type(of: $0))), windows=\($0.windowControllers.count)" }.joined(separator: ",")
+                print("Startup: callback=\(delegate.finishedLaunching), documents=\(documents.count), visible=\(visible.count), active=\(application.isActive), defaultType=\(NSDocumentController.shared.defaultType ?? "nil"), \(counts)")
+                for document in documents { document.updateChangeCount(.changeCleared); document.close() }
+                exit(delegate.finishedLaunching && !visible.isEmpty ? 0 : 1)
+            }
         }
         application.setActivationPolicy(.regular)
         withExtendedLifetime(delegate) { application.run() }

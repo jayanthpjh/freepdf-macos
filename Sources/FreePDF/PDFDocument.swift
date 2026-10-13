@@ -38,9 +38,10 @@ final class FreePDFDocument: NSDocument {
             if pdf.unlock(withPassword: password) { unlockPassword = password }
             else { Dialogs.info("Incorrect password", "Please try again.") }
         }
-        let controller = EditorWindowController(document: self)
+        let controller = EditorWindowController()
         editor = controller
         addWindowController(controller)
+        controller.refresh()
     }
     func change(_ name: String, _ operation: (PDFDocument) throws -> Void) throws {
         guard !pdf.isLocked, pdf.allowsDocumentChanges else { throw PDFError.locked }

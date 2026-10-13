@@ -20,10 +20,9 @@ final class EditorWindowController: NSWindowController, NSSearchFieldDelegate {
     var textSize: CGFloat { CGFloat(Double(fontSize.titleOfSelectedItem ?? "16") ?? 16) }
     private var observers: [NSObjectProtocol] = []
 
-    init(document: FreePDFDocument) {
+    init() {
         let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 1120, height: 780), styleMask: [.titled, .closable, .miniaturizable, .resizable], backing: .buffered, defer: false)
         super.init(window: window)
-        self.document = document
         window.minSize = NSSize(width: 850, height: 560)
         window.title = "FreePDF"; window.center()
         window.tabbingMode = .preferred
@@ -36,9 +35,8 @@ final class EditorWindowController: NSWindowController, NSSearchFieldDelegate {
                 MainActor.assumeIsolated { self?.updateStatus(); self?.pdfView.redactionOverlay.needsDisplay = true }
             })
         }
-        refresh()
     }
-    required init?(coder: NSCoder) { fatalError("Use init(document:)") }
+    required init?(coder: NSCoder) { fatalError("Use init()") }
     deinit { progressTimer?.invalidate(); job?.cancel(); observers.forEach(NotificationCenter.default.removeObserver) }
 
     func buildLayout() {

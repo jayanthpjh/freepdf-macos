@@ -48,6 +48,7 @@ To work on the code, open `Package.swift` in Xcode. To run tests:
 ```sh
 swift test
 outputs/FreePDF.app/Contents/MacOS/FreePDF --smoke-test "$PWD/work"
+outputs/FreePDF.app/Contents/MacOS/FreePDF --startup-test
 ```
 
 Vision integration tests require access to macOS system services. Restricted execution sandboxes can fail even when the app runs normally; do not silently skip these tests.
@@ -63,7 +64,7 @@ Vision integration tests require access to macOS system services. Restricted exe
 
 ## Verification
 
-Automated checks cover PDF round trips, OCR recognition and searchability, encrypted exports and serialization, form values, batch isolation, and recovery bytes. The packaged app smoke test checks native window layout, insertion, undo/redo, encrypted undo, safe saving, and reverting to saved files. Live pointer/keyboard UI inspection could not be completed because the desktop inspection service timed out; full interactive QA is still required.
+Automated checks cover PDF round trips, OCR recognition and searchability, encrypted exports and serialization, form values, batch isolation, and recovery bytes. The packaged app smoke test checks native window layout, insertion, undo/redo, encrypted undo, safe saving, and reverting to saved files. Real startup regression checks verify a registered visible window. The initial missing-window defect has been fixed and window visibility confirmed in the desktop inspector; broader interactive QA is still required.
 
 ## Architecture
 

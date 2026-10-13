@@ -16,6 +16,7 @@ All requested feature groups remain in scope. A feature being on this list is no
 - [x] Raster region replacement with new text.
 - [x] Text-only comparison report.
 - [x] Native document saving and undo for app-controlled edits.
+- [x] Correct AppKit window registration and real-startup visibility regression.
 
 ## Before stable 1.0
 
