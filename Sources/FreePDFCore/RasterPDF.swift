@@ -9,7 +9,7 @@ public enum RasterPDF {
         let rotated = abs(page.rotation % 180) == 90
         let size = CGSize(width: rotated ? box.height : box.width, height: rotated ? box.width : box.height)
         guard scale.isFinite, scale > 0, size.width.isFinite, size.height.isFinite,
-              size.width > 0, size.height > 0, size.width * size.height * scale * scale <= 40_000_000,
+              size.width > 0, size.height > 0, size.width * scale <= 20000, size.height * scale <= 20000, size.width * size.height * scale * scale <= 40_000_000,
               let ref = page.pageRef else { throw PDFError.imageTooLarge }
         let width = Int(ceil(size.width * scale)), height = Int(ceil(size.height * scale))
         guard let context = CGContext(data: nil, width: width, height: height, bitsPerComponent: 8, bytesPerRow: 0,
