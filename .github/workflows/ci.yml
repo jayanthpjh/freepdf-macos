@@ -1,0 +1,22 @@
+name: macOS build and tests
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  native:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test PDF workflows
+        run: swift test
+      - name: Package app
+        run: ./scripts/build-app.sh
+      - name: Native document smoke test
+        run: outputs/FreePDF.app/Contents/MacOS/FreePDF --smoke-test "$PWD/work"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: FreePDF-macOS-preview
+          path: outputs/FreePDF-macOS.zip
