@@ -54,7 +54,7 @@ final class FreePDFDocument: NSDocument {
             target.registerUndo(current, name: name)
             target.pdf = restored
             target.updateChangeCount(target.undoManager?.isUndoing == true ? .changeUndone : .changeDone)
-            target.editor?.refresh()
+            MainActor.assumeIsolated { target.editor?.refresh() }
         }
         undoManager?.setActionName(name)
     }

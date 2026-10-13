@@ -13,7 +13,7 @@ final class RasterTests: XCTestCase {
         context.beginPDFPage(nil)
         context.setFillColor(NSColor.white.cgColor)
         context.fill(box)
-        let line = CTLineCreateWithAttributedString(NSAttributedString(string: "SECRET visible", attributes: [.font: NSFont.systemFont(ofSize: 20)]) as CFAttributedString)
+        let line = CTLineCreateWithAttributedString(NSAttributedString(string: "SECRET visible", attributes: [NSAttributedString.Key(kCTFontAttributeName as String): CTFontCreateWithName("Helvetica" as CFString, 20, nil)]) as CFAttributedString)
         context.textPosition = CGPoint(x: 20, y: 100)
         CTLineDraw(line, context)
         context.endPDFPage(); context.closePDF()

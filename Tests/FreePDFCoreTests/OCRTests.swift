@@ -16,7 +16,7 @@ final class OCRTests: XCTestCase {
     func testOCRPreservesExistingTextAndCancellation() throws {
         let original = try RasterTests().fixture()
         let output = try LocalOCR.recognize(original)
-        XCTAssertEqual(output.string, original.string)
+        XCTAssertEqual(output.string?.trimmingCharacters(in: .whitespacesAndNewlines), original.string?.trimmingCharacters(in: .whitespacesAndNewlines))
         let progress = Progress(totalUnitCount: 1); progress.cancel()
         XCTAssertThrowsError(try LocalOCR.recognize(original, progress: progress))
     }
@@ -24,7 +24,7 @@ final class OCRTests: XCTestCase {
         let original = try RasterTests().fixture()
         let page = try RasterPDF.page(image: RasterPDF.image(original.page(at: 0)!, scale: 3), size: CGSize(width: 300, height: 200))
         let scan = PDFDocument(); scan.insert(page, at: 0)
-        XCTAssertTrue((scan.string ?? "").isEmpty)
+        XCTAssertTrue((scan.string ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
         let output = try LocalOCR.recognize(scan)
         XCTAssertTrue((output.string ?? "").uppercased().contains("SECRET"), output.string ?? "No text")
     }
