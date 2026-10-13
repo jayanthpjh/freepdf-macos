@@ -39,7 +39,7 @@ final class EditorWindowController: NSWindowController, NSSearchFieldDelegate {
         refresh()
     }
     required init?(coder: NSCoder) { fatalError("Use init(document:)") }
-    deinit { observers.forEach(NotificationCenter.default.removeObserver) }
+    deinit { progressTimer?.invalidate(); job?.cancel(); observers.forEach(NotificationCenter.default.removeObserver) }
 
     func buildLayout() {
         guard let root = window?.contentView else { return }

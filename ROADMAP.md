@@ -20,7 +20,8 @@ All requested feature groups remain in scope. A feature being on this list is no
 ## Before stable 1.0
 
 - [ ] Expand independent rendering/extraction checks across a public, license-safe PDF corpus.
-- [ ] Verify Intel and macOS 14/15 compatibility; automated macOS UI regression coverage.
+- [x] macOS 15 Apple Silicon CI: core tests, packaging, and native document smoke test.
+- [ ] Verify Intel and macOS 14 compatibility; automated interactive macOS UI regression coverage.
 - [ ] Improve current-page annotation/form inspector into a persistent side panel.
 - [ ] Drag-to-reposition/resize annotations and signature images; saved signature library.
 - [ ] Undo operation deltas and explicit large-file memory benchmarks.

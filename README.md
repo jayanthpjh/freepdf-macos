@@ -1,5 +1,7 @@
 # FreePDF for macOS
 
+[![macOS build and tests](https://github.com/jayanthpjh/freepdf-macos/actions/workflows/ci.yml/badge.svg)](https://github.com/jayanthpjh/freepdf-macos/actions/workflows/ci.yml)
+
 A free, offline, native PDF workbench for macOS. Built with Swift, AppKit, PDFKit, and Vision. No accounts, telemetry, subscriptions, cloud backend, or third-party PDF SDK.
 
 **Status: early development preview, not full Acrobat parity.** This project is independently implemented. It is not affiliated with Adobe or Apple.
@@ -28,7 +30,7 @@ Advanced content-stream editing, layout-preserving Office conversion, cryptograp
 
 ## Requirements
 
-- macOS 14 or later (minimum target; currently verified on Apple Silicon, macOS 27.0.1).
+- macOS 14 or later (minimum target; verified on Apple Silicon, macOS 15 in GitHub CI and macOS 27.0.1 locally).
 - Xcode or the Swift toolchain, Swift 5.10 or later.
 - No external packages or API keys.
 
@@ -61,7 +63,7 @@ Vision integration tests require access to macOS system services. Restricted exe
 
 ## Verification
 
-Automated checks cover PDF round trips, OCR recognition and searchability, encrypted exports and serialization, form values, batch isolation, and recovery bytes. The packaged app smoke test checks native window layout, insertion, undo/redo, encrypted undo, and saving. Live pointer/keyboard UI inspection could not be completed because the desktop inspection service timed out; full interactive QA is still required.
+Automated checks cover PDF round trips, OCR recognition and searchability, encrypted exports and serialization, form values, batch isolation, and recovery bytes. The packaged app smoke test checks native window layout, insertion, undo/redo, encrypted undo, safe saving, and reverting to saved files. Live pointer/keyboard UI inspection could not be completed because the desktop inspection service timed out; full interactive QA is still required.
 
 ## Architecture
 

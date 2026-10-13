@@ -23,6 +23,11 @@ func smokeTestApplication() throws {
     let output = URL(fileURLWithPath: CommandLine.arguments.last!).appendingPathComponent("smoke-fixture.pdf")
     try document.writeSafely(to: output, ofType: "com.adobe.pdf", for: .saveAsOperation)
     guard PDFDocument(url: output)?.pageCount == 2 else { throw PDFError.invalidDocument }
+    document.fileURL = output
+    try document.change("Temporary extra page") { $0.insert(try PDFOperations.blankPage(), at: 2) }
+    try document.revert(toContentsOf: output, ofType: "com.adobe.pdf")
+    RunLoop.current.run(until: Date().addingTimeInterval(0.05))
+    guard document.pdf.pageCount == 2, editor.pdfView.document?.pageCount == 2 else { throw PDFError.invalidDocument }
     let protectedURL = output.deletingLastPathComponent().appendingPathComponent("smoke-encrypted.pdf")
     defer { try? FileManager.default.removeItem(at: protectedURL) }
     guard document.pdf.write(to: protectedURL, withOptions: [.ownerPasswordOption: "owner", .userPasswordOption: "reader"]),
@@ -35,5 +40,5 @@ func smokeTestApplication() throws {
     guard !document.pdf.isLocked, document.pdf.pageCount == 2 else { throw PDFError.invalidDocument }
     document.updateChangeCount(.changeCleared)
     document.close()
-    print("PASS: native window layout, document lifecycle, insert, undo, redo, PDF serialization, encrypted undo")
+    print("PASS: native window layout, document lifecycle, insert, undo, redo, PDF serialization, revert refresh, encrypted undo")
 }

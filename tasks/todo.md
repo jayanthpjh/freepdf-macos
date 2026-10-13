@@ -8,6 +8,6 @@
 - [x] Verify encrypted output and encrypted undo.
 - [x] Add recovery snapshots and batch processing.
 - [x] Add build packaging, MIT license, feature matrix, contribution/security docs, and CI.
-- [ ] Publish and verify the public GitHub repository and preview release.
+- [x] Publish and verify the public GitHub repository and preview release.
 - [ ] Complete live interactive UI QA (desktop inspection service timed out).
 - [ ] Complete the advanced features and release hardening tracked in ROADMAP.md.

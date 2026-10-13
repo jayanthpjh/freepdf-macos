@@ -17,7 +17,17 @@ final class FreePDFDocument: NSDocument {
     }
     override func read(from data: Data, ofType typeName: String) throws {
         guard let loaded = PDFDocument(data: data) else { throw PDFError.invalidDocument }
+        if loaded.isLocked, let password = unlockPassword { _ = loaded.unlock(withPassword: password) }
         pdf = loaded
+        DispatchQueue.main.async { [weak self] in
+            guard let self, self.editor != nil else { return }
+            while self.pdf.isLocked {
+                guard let password = Dialogs.text("Unlock PDF", message: "Enter this document’s password.", secure: true) else { self.close(); return }
+                if self.pdf.unlock(withPassword: password) { self.unlockPassword = password }
+                else { Dialogs.info("Incorrect password", "Please try again.") }
+            }
+            self.editor?.refresh()
+        }
     }
     override func data(ofType typeName: String) throws -> Data { try PDFOperations.data(pdf) }
     override func makeWindowControllers() {
