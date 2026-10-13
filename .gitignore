@@ -6,3 +6,5 @@ outputs/*
 !outputs/product-plan.md
 *.xcuserstate
 .env*
+
+Vendor/

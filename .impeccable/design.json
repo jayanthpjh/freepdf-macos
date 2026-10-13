@@ -1,0 +1,98 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-13T14:07:09.698730+00:00",
+  "title": "Design System: FreePDF",
+  "extensions": {
+    "typographyMeta": {
+      "title": {
+        "displayName": "Native panel title",
+        "purpose": "Sidebar name and contextual inspector heading."
+      },
+      "navigation": {
+        "displayName": "Native navigation",
+        "purpose": "Sidebar workflow labels."
+      },
+      "body": {
+        "displayName": "Native controls and copy",
+        "purpose": "Actions, lists, and text editing."
+      },
+      "label": {
+        "displayName": "Supporting labels",
+        "purpose": "Property captions, explanations, and status."
+      }
+    }
+  },
+  "components": [
+    {
+      "name": "Action button",
+      "kind": "button",
+      "refersTo": "action-button",
+      "description": "Native NSButton with rounded bezel, labeled action, and AppKit interaction states."
+    },
+    {
+      "name": "Sidebar workflow",
+      "kind": "nav",
+      "refersTo": "mode-button",
+      "description": "Native borderless NSButton, labeled SF Symbol, recessed selected treatment and semantic teal tint."
+    },
+    {
+      "name": "Workflow selector",
+      "kind": "nav",
+      "description": "Native textured rounded NSSegmentedControl with seven visible workflows."
+    },
+    {
+      "name": "Property input",
+      "kind": "input",
+      "description": "Native NSTextField or NSPopUpButton with system focus and editing behavior."
+    },
+    {
+      "name": "Context list",
+      "kind": "custom",
+      "description": "Native NSTableView with concise two-line object, comment, or form labels."
+    },
+    {
+      "name": "Page thumbnail",
+      "kind": "custom",
+      "description": "PDFKit-generated page preview and centered caption, with multi-selection and local drag reorder."
+    }
+  ],
+  "narrative": {
+    "northStar": "Native Operate",
+    "overview": "FreePDF follows the user's Acrobat reference with a familiar professional document workspace: compact document controls, visible tool navigation, a central PDF canvas, and contextual properties. Native macOS controls supply its visual language and interaction conventions. The document is the dominant material; application chrome helps users operate on it.\n\nThe system is compact and practical. It preserves macOS menus, keyboard shortcuts, file dialogs, and window behavior. Existing-content editing, annotations, and flattened-copy operations remain distinct workflows. Capability explanations belong beside the affected controls.",
+    "keyCharacteristics": [
+      "Native AppKit typography and controls.",
+      "Adaptive neutral surfaces with a restrained teal accent.",
+      "Persistent labeled navigation and contextual inspection.",
+      "Local document work without account prompts or cloud upsells."
+    ],
+    "rules": [
+      {
+        "name": "The Semantic Color Rule",
+        "body": "Keep adaptive native roles as the authority. Do not replace them with sampled light-mode RGB values.",
+        "section": "colors"
+      },
+      {
+        "name": "The Document Type Rule",
+        "body": "Application type remains compact and native. PDF content retains the document's own typography; application fonts do not dictate exported document type.",
+        "section": "typography"
+      },
+      {
+        "name": "The Context Rule",
+        "body": "Keep document navigation stable while the inspector changes with the active workflow and selection. Long property lists scroll inside their panel.",
+        "section": "layout"
+      }
+    ],
+    "dos": [
+      "Do use native semantic colors and system fonts.",
+      "Do keep common workflows visible and contextual controls beside the document.",
+      "Do pair symbols with clear labels and accessible names.",
+      "Do explain editing, flattening, OCR, and signature limitations beside the relevant workflow."
+    ],
+    "donts": [
+      "Don't add promotional cards, account prompts, or cloud upsells to the workspace.",
+      "Don't introduce giant application typography or decorative motion.",
+      "Don't make color the sole indicator of a tool or operation.",
+      "Don't present signature images as certificate signatures or annotations as direct content editing."
+    ]
+  }
+}

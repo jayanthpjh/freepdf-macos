@@ -11,6 +11,34 @@ final class EditorWindowController: NSWindowController, NSSearchFieldDelegate {
     let toolPicker = NSPopUpButton()
     let color = NSColorWell()
     let fontSize = NSPopUpButton()
+    var workspace: WorkspaceMode = .read
+    let modeControl = NSSegmentedControl()
+    var modeButtons: [WorkspaceButton] = []
+    let sidebarSwitch = NSSegmentedControl()
+    let sidebarBody = NSStackView()
+    let toolsScroll = NSScrollView()
+    let pageScroll = NSScrollView()
+    let pageList = NSTableView()
+    let inspectorScroll = NSScrollView()
+    let inspectorColumn = FlippedStackView()
+    let workspaceSplit = NSSplitView()
+    let pageNumber = NSTextField(string: "1")
+    let contentList = NSTableView()
+    let contentText = NSTextView()
+    let contentFont = NSPopUpButton()
+    let objectSize = NSTextField(string: "16")
+    var rectFields: [NSTextField] = []
+    var contentObjects: [PDFContentObject] = []
+    var selectedContent: PDFContentObject?
+    var pageAnnotations: [PDFAnnotation] = []
+    var selectedAnnotation: PDFAnnotation?
+    var inspectorMessage = ""
+    var updatingInspector = false
+    var inspectedPage: Int?
+    let fieldValue = NSTextField(string: "")
+    let fieldChoices = NSPopUpButton()
+    let ocrLanguage = NSPopUpButton()
+    static let pagePasteboardType = NSPasteboard.PasteboardType("io.github.freepdf.page-index")
     var progressTimer: Timer?
     var job: Progress?
     var pendingRegions: [Int: [CGRect]] = [:]
@@ -21,82 +49,31 @@ final class EditorWindowController: NSWindowController, NSSearchFieldDelegate {
     private var observers: [NSObjectProtocol] = []
 
     init() {
-        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 1120, height: 780), styleMask: [.titled, .closable, .miniaturizable, .resizable], backing: .buffered, defer: false)
+        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 1280, height: 820), styleMask: [.titled, .closable, .miniaturizable, .resizable], backing: .buffered, defer: false)
         super.init(window: window)
-        window.minSize = NSSize(width: 850, height: 560)
+        window.minSize = NSSize(width: 1040, height: 620)
         window.title = "FreePDF"; window.center()
         window.tabbingMode = .preferred
         buildLayout()
         pdfView.onRegion = { [weak self] page, rect, points in self?.addRegion(page, rect, points) }
         pdfView.redactionRegions = { [weak self] in self?.pendingRegions ?? [:] }
-        pdfView.onWidget = { [weak self] in self?.perform("forms") }
+        pdfView.onWidget = { [weak self] in self?.setWorkspace(.forms) }
+        pdfView.onContentHit = { [weak self] page, point in self?.selectContent(on: page, at: point) }
+        pdfView.selectedRegion = { [weak self] in
+            guard let self, let page = self.pdfView.currentPage else { return nil }
+            if let object = self.selectedContent { return (page, object.bounds) }
+            if let annotation = self.selectedAnnotation { return (page, annotation.bounds) }
+            return nil
+        }
         for name in [Notification.Name.PDFViewPageChanged, .PDFViewScaleChanged] {
             observers.append(NotificationCenter.default.addObserver(forName: name, object: pdfView, queue: .main) { [weak self] _ in
-                MainActor.assumeIsolated { self?.updateStatus(); self?.pdfView.redactionOverlay.needsDisplay = true }
+                MainActor.assumeIsolated { self?.updateStatus(); self?.reloadInspector(); self?.pdfView.redactionOverlay.needsDisplay = true }
             })
         }
     }
     required init?(coder: NSCoder) { fatalError("Use init()") }
     deinit { progressTimer?.invalidate(); job?.cancel(); observers.forEach(NotificationCenter.default.removeObserver) }
 
-    func buildLayout() {
-        guard let root = window?.contentView else { return }
-        let bar = NSStackView(); bar.spacing = 8; bar.orientation = .horizontal
-        bar.edgeInsets = NSEdgeInsets(top: 8, left: 12, bottom: 8, right: 12)
-        bar.addArrangedSubview(button("Open", action: #selector(openDocument)))
-        bar.addArrangedSubview(button("Save", action: #selector(saveDocument)))
-        let modes = NSStackView(); modes.spacing = 4
-        for (title, command) in [("Annotate", "annotateMenu"), ("Pages", "pagesMenu"), ("Tools", "toolsMenu"), ("Export", "exportMenu")] {
-            let popup = NSPopUpButton(); popup.pullsDown = true
-            popup.addItem(withTitle: title)
-            for (label, action) in commands(for: command) {
-                popup.addItem(withTitle: label)
-                let item = popup.lastItem!; item.target = self; item.action = #selector(menuCommand(_:)); item.representedObject = action
-            }
-            modes.addArrangedSubview(popup)
-        }
-        bar.addArrangedSubview(modes)
-        search.placeholderString = "Find in document"; search.delegate = self
-        search.target = self; search.action = #selector(findText)
-        search.widthAnchor.constraint(greaterThanOrEqualToConstant: 150).isActive = true
-        bar.addArrangedSubview(search)
-        bar.addArrangedSubview(button("−", action: #selector(zoomOut)))
-        bar.addArrangedSubview(button("+", action: #selector(zoomIn)))
-        bar.addArrangedSubview(button("Fit", action: #selector(fit)))
-
-        let annotationBar = NSStackView(); annotationBar.spacing = 10
-        annotationBar.edgeInsets = NSEdgeInsets(top: 4, left: 12, bottom: 4, right: 12)
-        toolPicker.addItems(withTitles: CanvasTool.allCases.map(\.rawValue))
-        toolPicker.target = self; toolPicker.action = #selector(toolChanged)
-        annotationBar.addArrangedSubview(NSTextField(labelWithString: "Tool")); annotationBar.addArrangedSubview(toolPicker)
-        color.color = .systemTeal; color.widthAnchor.constraint(equalToConstant: 44).isActive = true
-        color.setAccessibilityLabel("Annotation color")
-        annotationBar.addArrangedSubview(color)
-        annotationBar.addArrangedSubview(NSTextField(labelWithString: "Text size"))
-        fontSize.addItems(withTitles: ["10", "12", "16", "20", "24", "32", "48"]); fontSize.selectItem(withTitle: "16")
-        annotationBar.addArrangedSubview(fontSize)
-        annotationBar.addArrangedSubview(button("Highlight", action: #selector(highlight)))
-        annotationBar.addArrangedSubview(button("Apply redactions", action: #selector(applyRedactions)))
-        annotationBar.addArrangedSubview(button("Cancel task", action: #selector(cancelJob)))
-
-        pdfView.autoScales = true; pdfView.displayMode = .singlePageContinuous
-        pdfView.backgroundColor = .windowBackgroundColor
-        thumbnails.pdfView = pdfView; thumbnails.thumbnailSize = NSSize(width: 100, height: 130)
-        thumbnails.widthAnchor.constraint(equalToConstant: 150).isActive = true
-        let split = NSSplitView(); split.isVertical = true; split.dividerStyle = .thin
-        split.addArrangedSubview(thumbnails); split.addArrangedSubview(pdfView)
-        let footer = NSStackView(); footer.spacing = 8
-        footer.edgeInsets = NSEdgeInsets(top: 6, left: 12, bottom: 6, right: 12)
-        footer.addArrangedSubview(button("‹", action: #selector(previousPage)))
-        footer.addArrangedSubview(button("›", action: #selector(nextPage)))
-        status.font = .systemFont(ofSize: 12); status.textColor = .secondaryLabelColor
-        footer.addArrangedSubview(status)
-        let column = NSStackView(views: [bar, annotationBar, split, footer]); column.orientation = .vertical; column.spacing = 0; column.alignment = .leading
-        column.translatesAutoresizingMaskIntoConstraints = false; root.addSubview(column)
-        NSLayoutConstraint.activate([column.leadingAnchor.constraint(equalTo: root.leadingAnchor), column.trailingAnchor.constraint(equalTo: root.trailingAnchor), column.topAnchor.constraint(equalTo: root.topAnchor), column.bottomAnchor.constraint(equalTo: root.bottomAnchor)])
-        for view in [bar, annotationBar, split, footer] { view.widthAnchor.constraint(equalTo: column.widthAnchor).isActive = true }
-        split.heightAnchor.constraint(greaterThanOrEqualToConstant: 300).isActive = true
-    }
     func button(_ title: String, action: Selector) -> NSButton {
         let button = NSButton(title: title, target: self, action: action)
         button.bezelStyle = .rounded; button.setAccessibilityLabel(title)
@@ -110,9 +87,18 @@ final class EditorWindowController: NSWindowController, NSSearchFieldDelegate {
         thumbnails.pdfView = pdfView
         pdfView.redactionOverlay.needsDisplay = true
         pdfView.needsDisplay = true
+        pageList.reloadData()
+        reloadInspector()
         updateStatus()
     }
     func updateStatus() {
+        guard document is FreePDFDocument else { return }
+        pageNumber.stringValue = "\(currentIndex + 1)"
+        if pageList.selectedRowIndexes.count <= 1, pageList.selectedRow != currentIndex {
+            let previous = updatingInspector; updatingInspector = true
+            pageList.selectRowIndexes(IndexSet(integer: currentIndex), byExtendingSelection: false)
+            updatingInspector = previous
+        }
         let progress = job.map { " · Processing \($0.completedUnitCount)/\($0.totalUnitCount)" } ?? ""
         status.stringValue = "Page \(currentIndex + 1) of \(doc.pdf.pageCount) · \(Int(pdfView.scaleFactor * 100))% · \(pdfView.tool.rawValue)\(progress)"
     }
@@ -124,11 +110,12 @@ final class EditorWindowController: NSWindowController, NSSearchFieldDelegate {
     @objc func saveDocument() { doc.save(nil) }
     @objc func zoomIn() { pdfView.zoomIn(nil) }
     @objc func zoomOut() { pdfView.zoomOut(nil) }
-    @objc func fit() { pdfView.autoScales = true }
+    @objc func fit() { pdfView.autoScales = false; pdfView.scaleFactor = pdfView.scaleFactorForSizeToFit }
     @objc func nextPage() { pdfView.goToNextPage(nil) }
     @objc func previousPage() { pdfView.goToPreviousPage(nil) }
     @objc func toolChanged() {
         pdfView.tool = CanvasTool(rawValue: toolPicker.titleOfSelectedItem ?? "") ?? .select
+        reloadInspector()
         updateStatus()
     }
     @objc func menuCommand(_ sender: NSMenuItem) { if let command = sender.representedObject as? String { perform(command) } }

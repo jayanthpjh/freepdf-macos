@@ -27,4 +27,13 @@ final class PDFOperationsTests: XCTestCase {
         XCTAssertThrowsError(try PDFOperations.extract(source, indices: [-1]))
         XCTAssertThrowsError(try PDFOperations.extract(source, indices: []))
     }
+    func testMultiplePageMovePreservesOrderAndRoundTrips() throws {
+        let document = PDFDocument()
+        for rotation in [0, 90, 180, 270] { let page = try PDFOperations.blankPage(); page.rotation = rotation; document.insert(page, at: document.pageCount) }
+        try PDFOperations.movePages(document, indices: [0, 2], before: 4)
+        let reopened = try XCTUnwrap(PDFDocument(data: PDFOperations.data(document)))
+        XCTAssertEqual((0..<4).map { reopened.page(at: $0)!.rotation }, [90, 270, 0, 180])
+        XCTAssertThrowsError(try PDFOperations.movePages(document, indices: [1, 1], before: 0))
+    }
+
 }

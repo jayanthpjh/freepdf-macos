@@ -42,6 +42,16 @@ public enum PDFOperations {
         return output
     }
 
+    public static func movePages(_ document: PDFDocument, indices: [Int], before destination: Int) throws {
+        let sorted = indices.sorted()
+        guard !document.isLocked, !sorted.isEmpty, Set(sorted).count == sorted.count,
+              sorted.allSatisfy({ $0 >= 0 && $0 < document.pageCount }), destination >= 0, destination <= document.pageCount else { throw PDFError.invalidPages }
+        let pages = try sorted.map { index -> PDFPage in guard let page = document.page(at: index) else { throw PDFError.invalidPages }; return page }
+        let insertion = destination - sorted.filter { $0 < destination }.count
+        for index in sorted.reversed() { document.removePage(at: index) }
+        for (offset, page) in pages.enumerated() { document.insert(page, at: insertion + offset) }
+    }
+
     public static func data(_ document: PDFDocument) throws -> Data {
         guard !document.isLocked, document.pageCount > 0, let data = document.dataRepresentation() else { throw PDFError.invalidDocument }
         return data

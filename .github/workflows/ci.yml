@@ -10,6 +10,8 @@ jobs:
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
+      - name: Fetch verified open-source editing engine
+        run: ./scripts/bootstrap-pdfium.sh
       - name: Test PDF workflows
         run: swift test
       - name: Package app

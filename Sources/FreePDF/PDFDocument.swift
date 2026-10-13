@@ -63,11 +63,14 @@ final class FreePDFDocument: NSDocument {
     private func registerUndo(_ data: Data, name: String) {
         // ponytail: full-document undo snapshots; use operation deltas if large-file memory becomes a bottleneck.
         undoManager?.registerUndo(withTarget: self) { target in
-            guard let current = try? PDFOperations.data(target.pdf), let restored = target.decoded(data) else { return }
-            target.registerUndo(current, name: name)
-            target.pdf = restored
-            target.updateChangeCount(target.undoManager?.isUndoing == true ? .changeUndone : .changeDone)
-            MainActor.assumeIsolated { target.editor?.refresh() }
+            MainActor.assumeIsolated {
+                guard let current = try? PDFOperations.data(target.pdf), let restored = target.decoded(data) else { return }
+                let index = target.editor?.currentIndex ?? 0
+                target.registerUndo(current, name: name)
+                target.pdf = restored
+                target.updateChangeCount(target.undoManager?.isUndoing == true ? .changeUndone : .changeDone)
+                target.editor?.refresh(index: index)
+            }
         }
         undoManager?.setActionName(name)
     }

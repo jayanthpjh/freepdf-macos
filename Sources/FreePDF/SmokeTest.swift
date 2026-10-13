@@ -42,5 +42,17 @@ func smokeTestApplication() throws {
     guard !document.pdf.isLocked, document.pdf.pageCount == 2 else { throw NSError(domain: "FreePDFSmoke", code: 11, userInfo: [NSLocalizedDescriptionKey: "encrypted undo"]) }
     document.updateChangeCount(.changeCleared)
     document.close()
-    print("PASS: native window layout, document lifecycle, insert, undo, redo, PDF serialization, revert refresh, encrypted undo")
+    let sample = FreePDFDocument(); sample.pdf = try makeSampleDocument()
+    NSDocumentController.shared.addDocument(sample); sample.makeWindowControllers()
+    guard let workspace = sample.editor else { throw PDFError.invalidDocument }
+    workspace.setWorkspace(.edit)
+    guard let object = workspace.contentObjects.first(where: { $0.text.contains("Edit this sentence") }) else { throw PDFError.noText }
+    workspace.selectedContent = object; workspace.rebuildInspector()
+    workspace.contentText.string = "A revised sentence with editable text."
+    sample.undoManager?.beginUndoGrouping(); try workspace.applyTextEdit(); sample.undoManager?.endUndoGrouping()
+    guard sample.pdf.page(at: 2)?.annotations.filter({ $0.type == "Widget" }).count == 3, (sample.pdf.page(at: 0)?.string ?? "").contains("A revised sentence with editable text.") else { throw PDFError.invalidDocument }
+    sample.undoManager?.undo()
+    guard (sample.pdf.page(at: 0)?.string ?? "").contains("Edit this sentence"), workspace.currentIndex == 0 else { throw PDFError.invalidDocument }
+    sample.updateChangeCount(.changeCleared); sample.close()
+    print("PASS: native window layout, document lifecycle, insert, undo, redo, PDF serialization, revert refresh, encrypted undo, workspace content editing and undo")
 }

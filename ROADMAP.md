@@ -23,7 +23,7 @@ All requested feature groups remain in scope. A feature being on this list is no
 - [ ] Expand independent rendering/extraction checks across a public, license-safe PDF corpus.
 - [x] macOS 15 Apple Silicon CI: core tests, packaging, and native document smoke test.
 - [ ] Verify Intel and macOS 14 compatibility; automated interactive macOS UI regression coverage.
-- [ ] Improve current-page annotation/form inspector into a persistent side panel.
+- [x] Persistent content, annotation, and form inspector with visible workspace modes.
 - [ ] Drag-to-reposition/resize annotations and signature images; saved signature library.
 - [ ] Undo operation deltas and explicit large-file memory benchmarks.
 - [x] Recovery snapshots every 30 seconds with encrypted PDF bytes preserved.
@@ -38,12 +38,13 @@ All requested feature groups remain in scope. A feature being on this list is no
 
 ### Existing PDF text/image editing
 
-- [ ] Evaluate an open-source content-stream engine and dependency licenses.
-- [ ] Replace text/image operators without rasterizing pages.
+- [x] Integrate checksum-pinned open-source PDFium with bundled license notices.
+- [x] Replace top-level text/image objects, move/resize/delete, and save without rasterization.
 - [ ] Handle embedded/subset fonts, complex scripts, kerning, rotated text, and clipping.
-- [ ] Add editor controls and visual regression fixtures before advertising layout fidelity.
+- [x] Persistent editor controls and basic saved-output rendering fixtures.
+- [ ] Broader layout fidelity and original ICC/spot color preservation for content edits.
 
-Current area replacement is a pixel-based workaround with explicit flattening, not semantic PDF text editing.
+Direct content editing is available for top-level text and image objects. Standard-font text replacement does not reflow paragraphs or guarantee original typography. Grouped Form XObjects and complex typography remain incomplete. Raster area replacement remains a separate flattening tool.
 
 ### Vector-preserving permanent redaction
 

@@ -7,13 +7,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     var recoveryTimer: Timer?
     var finishedLaunching = false
     func applicationDidFinishLaunching(_ notification: Notification) {
+        let demo = CommandLine.arguments.contains("--demo") || Bundle.main.object(forInfoDictionaryKey: "FreePDFDemoOnLaunch") as? Bool == true
         finishedLaunching = true
         buildMenus()
         NSApp.activate(ignoringOtherApps: true)
-        if !CommandLine.arguments.contains("--startup-test") { AppRecovery.restore() }
+        if !CommandLine.arguments.contains("--startup-test") && !demo { AppRecovery.restore() }
         recoveryTimer = Timer.scheduledTimer(withTimeInterval: 30, repeats: true) { _ in
             MainActor.assumeIsolated { AppRecovery.checkpoint() }
         }
+        if demo { openSampleDocument() }
         presentDocumentWindows()
     }
     func presentDocumentWindows() {
@@ -54,6 +56,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let file = menu("File")
         item(file, "New", #selector(NSDocumentController.newDocument(_:)), "n", target: NSDocumentController.shared)
         item(file, "Open…", #selector(NSDocumentController.openDocument(_:)), "o", target: NSDocumentController.shared)
+        item(file, "Open sample document", #selector(openSampleDocument), target: self)
         file.addItem(.separator())
         item(file, "Close", #selector(NSWindow.performClose(_:)), "w")
         item(file, "Save", #selector(NSDocument.save(_:)), "s")

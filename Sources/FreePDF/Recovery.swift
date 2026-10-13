@@ -5,7 +5,7 @@ import FreePDFCore
 @MainActor
 enum AppRecovery {
     static let store = RecoveryStore(directory: FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-        .appendingPathComponent("FreePDF/Recovery", isDirectory: true))
+        .appendingPathComponent((Bundle.main.bundleIdentifier?.hasSuffix(".preview") == true ? "FreePDFPreview" : "FreePDF") + "/Recovery", isDirectory: true))
     static func checkpoint() {
         for document in NSDocumentController.shared.documents.compactMap({ $0 as? FreePDFDocument }) {
             do {

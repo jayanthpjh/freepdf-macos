@@ -1,8 +1,8 @@
 # Security and privacy
 
-FreePDF uses local Apple frameworks. It has no network client, telemetry, account system, or backend. PDF button scripts are not executed by the form inspector. External document links may be handled by macOS/PDFKit; do not follow links in untrusted PDFs.
+FreePDF uses local Apple frameworks and a bundled, checksum-pinned non-V8 PDFium content editor. PDFium JavaScript execution is unavailable. It has no network client, telemetry, account system, or backend. PDF button scripts are not executed by the form inspector. External document links may be handled by macOS/PDFKit; do not follow links in untrusted PDFs.
 
-PDF files are untrusted parser input. Keep macOS patched. This preview is ad-hoc signed and is not currently App Sandbox hardened. Do not use it as a replacement for an isolated document-analysis environment.
+PDF files are untrusted parser input. Keep macOS and the bundled PDFium release patched. This preview is ad-hoc signed and is not currently App Sandbox hardened. Do not use it as a replacement for an isolated document-analysis environment.
 
 Exports write atomically. Split exports use a new output folder. Password export requires confirmation and uses a separately generated owner password. The app retains a supplied unlock password only in memory for encrypted undo and background operations. Passwords are not written to disk. Recovery snapshots preserve PDF encryption and live under the application support folder, with a private directory and owner-only files. Existing encryption preservation is covered by a round-trip test; broader permissions/signature validation remains a release task.
 

@@ -2,13 +2,15 @@ import AppKit
 import PDFKit
 
 enum CanvasTool: String, CaseIterable {
-    case select = "Select", text = "Text box", note = "Note", rectangle = "Rectangle", oval = "Oval", ink = "Draw", redact = "Redact area", replace = "Replace area"
+    case select = "Select", editContent = "Edit content", text = "Text box", note = "Note", rectangle = "Rectangle", oval = "Oval", ink = "Draw", redact = "Redact area", replace = "Replace area"
 }
 
 final class CanvasView: PDFView {
     var tool: CanvasTool = .select
     var onRegion: ((PDFPage, CGRect, [CGPoint]) -> Void)?
     var onWidget: (() -> Void)?
+    var onContentHit: ((PDFPage, CGPoint) -> Void)?
+    var selectedRegion: (() -> (PDFPage, CGRect)?)?
     var redactionRegions: (() -> [Int: [CGRect]])?
     lazy var redactionOverlay: RedactionOverlay = {
         let view = RedactionOverlay()
@@ -30,6 +32,7 @@ final class CanvasView: PDFView {
     override func mouseDown(with event: NSEvent) {
         let point = convert(event.locationInWindow, from: nil)
         guard let page = page(for: point, nearest: false) else { super.mouseDown(with: event); return }
+        if tool == .editContent { onContentHit?(page, convert(point, to: page)); return }
         if tool == .select {
             let location = convert(point, to: page)
             if page.annotation(at: location)?.type == "Widget" {
@@ -78,6 +81,11 @@ final class RedactionOverlay: NSView {
     override var isOpaque: Bool { false }
     override func draw(_ dirtyRect: NSRect) {
         guard let canvas, let document = canvas.document else { return }
+        if let (page, region) = canvas.selectedRegion?() {
+            let rect = canvas.convert(region, from: page)
+            NSColor.systemTeal.withAlphaComponent(0.08).setFill(); NSBezierPath(rect: rect).fill()
+            NSColor.systemTeal.setStroke(); let path = NSBezierPath(rect: rect); path.lineWidth = 2; path.stroke()
+        }
         for (index, regions) in canvas.redactionRegions?() ?? [:] {
             guard let page = document.page(at: index) else { continue }
             for region in regions {
