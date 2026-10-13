@@ -26,7 +26,6 @@ func smokeTestApplication() throws {
     document.fileURL = output
     try document.change("Temporary extra page") { $0.insert(try PDFOperations.blankPage(), at: 2) }
     try document.revert(toContentsOf: output, ofType: "com.adobe.pdf")
-    RunLoop.current.run(until: Date().addingTimeInterval(0.05))
     guard document.pdf.pageCount == 2, editor.pdfView.document?.pageCount == 2 else { throw NSError(domain: "FreePDFSmoke", code: 9, userInfo: [NSLocalizedDescriptionKey: "revert model and view refresh: model=\(document.pdf.pageCount), view=\(editor.pdfView.document?.pageCount ?? -1)"]) }
     let protectedURL = output.deletingLastPathComponent().appendingPathComponent("smoke-encrypted.pdf")
     defer { try? FileManager.default.removeItem(at: protectedURL) }
